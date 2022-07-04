@@ -12,8 +12,8 @@ class SignalGroupStruct:
     def printSGC(self):
         print(self.name,self.frameId)    
     
-#Reads the frame ids int he header file and returns SignalGroupStruct lists with empty signals.
-def readFrameIds(filename):
+#Reads the header file into a SignalGroupStruct list and returns the list.
+def readHeaderFile(filename):
     frameIds = []
     with open(filename) as file:
         for line in file:
@@ -40,6 +40,6 @@ if __name__ == '__main__':
     msg_name = sys.argv[4]
     sbs_topic = sys.argv[5]
     pbs_topic = sys.argv[6]
-    structs = readFrameIds(pckg_path+"/"+db_name+"/include/"+db_name+".h")
+    structs = readHeaderFile(pckg_path+"/"+db_name+"/include/"+db_name+".h")
     for s in structs:
         s.printSGC()

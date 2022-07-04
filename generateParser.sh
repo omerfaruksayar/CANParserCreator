@@ -2,8 +2,8 @@
 
 db_name=$1
 dbc_path=$2
-msg_name=$3
-pckg_path=$4
+pckg_path=$3
+msg_name=$4
 sbs_topic=$5
 pbs_topic=$6
 
