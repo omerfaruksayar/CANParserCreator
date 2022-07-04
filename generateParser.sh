@@ -1,5 +1,7 @@
 #!/bin/sh
 
+#TODO: Create python venv and install cantools.
+
 db_name=$1
 dbc_path=$2
 pckg_path=$3
