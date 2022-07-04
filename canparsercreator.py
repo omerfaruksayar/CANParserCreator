@@ -2,9 +2,6 @@
 #Usage: python3 canparsercreator.py <package name> <dbc path> <package path> <package message name> <subscribing topic name for can messages> <publisher topic name>
 
 import sys
-from unittest import signals
-
-from numpy import size
 
 class SignalGroupStruct:
     signals = []
