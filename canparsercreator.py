@@ -1,7 +1,14 @@
-#Program takes 6 parameters.
+#Program takes 6 parameters, 
+#package name = Name of the package will be created in the given WS path
+#dbc path = path for dbc file containing .dbc file
+#package path = Path for WS/src
+#package message name = Message file name will be created in the package
+#subscribing topic name = Topic for can data
+#publisher topic name = Topic name to publish our message
 #Usage: python3 canparsercreator.py <package name> <dbc path> <package path> <package message name> <subscribing topic name for can messages> <publisher topic name>
 
 import sys
+import os
 
 class SignalGroupStruct:
     signals = []
@@ -34,7 +41,7 @@ def readHeaderFile(filename):
         for f in frameIds:
             signalGroups.append(SignalGroupStruct(f.split()[1].lower().replace("frame_id", "t"), f.split()[2].replace("(","").replace(")","")))
             
-        for counter in range(size(signalGroups)):
+        for counter in range(len(signalGroups)):
             
             for line_2 in file:
                 if 'struct' in line_2:
@@ -51,7 +58,31 @@ def readHeaderFile(filename):
             signals = []    
                                
     return signalGroups   
-                        
+
+#Converts the dbc encoding to utf-8 and determines the types in the message according to dbc and writes to the message file.                                 
+def fiilMessage(structs,msgPath,dbcPath):
+    os.system("iconv -f windows-1252 -t utf-8 " + dbc_path + " > " + dbc_path+".txt")
+    vals = []
+    with open(dbcPath+".txt") as dbc:
+        for line in dbc:
+            if 'VAL_ ' in line:
+                vals.append(line.strip().split()[2].lower())               
+          
+    with open(msgPath, 'w') as mf:
+        mf.write("std_msgs/Header header\n")
+        mf.write("\n")
+        for struct in structs:
+            mf.write("# %s "% struct.name.upper())
+            mf.write("%s\n" % struct.frameId)
+            for signal in struct.signals:
+                if (signal in vals):
+                    mf.write("uint64 %s\n" % signal)              
+                else:
+                    mf.write("float64 %s\n" % signal)
+            mf.write("\n")
+    
+    os.system("rm -rf " + dbc_path+".txt")                
+                                                        
 if __name__ == '__main__':
     db_name = sys.argv[1]
     dbc_path = sys.argv[2]
@@ -59,6 +90,5 @@ if __name__ == '__main__':
     msg_name = sys.argv[4]
     sbs_topic = sys.argv[5]
     pbs_topic = sys.argv[6]
-    structs = readHeaderFile(pckg_path+"/"+db_name+"/include/"+db_name+".h")
-    for s in structs:
-        s.printSGC()
+    structs = readHeaderFile(pckg_path+'/'+db_name+'/include/'+db_name+'.h')
+    fiilMessage(structs,pckg_path+'/'+db_name+'/msg/'+msg_name+'.msg',dbc_path)
