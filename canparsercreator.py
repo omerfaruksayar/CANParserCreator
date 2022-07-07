@@ -120,7 +120,7 @@ def bitDetermine(range):
         return 64
 
 #Converts the dbc encoding to utf-8 and determines the types in the message according to dbc and writes to the message file.                                 
-def fiilMessage(structs,msg_path,dbc_path):
+def fillMessage(structs,msg_path,dbc_path):
     #Search how to find encode format of the dbc, throw exception
     os.system("iconv -f windows-1252 -t utf-8 " + dbc_path + " > " + dbc_path+".txt")
     regexPattern = '(\[.+\|.+\])'
@@ -175,7 +175,7 @@ def fiilMessage(structs,msg_path,dbc_path):
                                     
 def writeCpp(structs,srcPath,msgName,dbName,sbsTopic,pbsTopic):
     
-    headers = '#include <ros/ros.h>\n#include "can_msgs/Frame.h"\n#include "'+dbName+'.h"\n#include "'+db_name+'/'+msgName+\
+    headers = '#include <ros/ros.h>\n#include "can_msgs/Frame.h"\n#include "'+dbName+'.h"\n#include "'+dbName+'/'+msgName+\
     '.h"\nusing namespace std;'
               
     classPublic = 'class '+dbName.upper()+'Feedback{\n\tpublic:\n\t\t'+dbName.upper()+\
@@ -217,15 +217,33 @@ def writeCpp(structs,srcPath,msgName,dbName,sbsTopic,pbsTopic):
         cpp.write('\n\t\t\tdefault:\n\t\t\t\tbreak;\n\t\t\t}\n')
         cpp.write(msgHeader)  
         cpp.write(intMain)                                 
-                                                        
-if __name__ == '__main__':
-    db_name = sys.argv[1]
-    dbc_path = sys.argv[2]
-    pckg_path = sys.argv[3]
-    msg_name = sys.argv[4]
-    sbs_topic = sys.argv[5]
-    pbs_topic = sys.argv[6]
+
+def main():
+    if len(sys.argv) == 7:
+        db_name = sys.argv[1]
+        dbc_path = sys.argv[2]
+        pckg_path = sys.argv[3]
+        msg_name = sys.argv[4]
+        sbs_topic = sys.argv[5]
+        pbs_topic = sys.argv[6]
+        
+    elif len(sys.argv) == 6:
+        db_name = sys.argv[1]
+        dbc_path = sys.argv[2]
+        pckg_path = sys.argv[3]
+        sbs_topic = sys.argv[4]
+        pbs_topic = sys.argv[5]
+        msg_name = db_name.capitalize()
+        
+    else:
+        print("Invalid Arguments!")
+        print("Usage: python3 canparsercreator.py <package name> <dbc path> <package path> <package message name>(Optional) <subscribing topic name for can messages> <publisher topic name>")
+        return -1
+        
     os.system("./generateParser.sh " + db_name + " " + dbc_path + " " + pckg_path + " " + msg_name + " " + sbs_topic + " " + pbs_topic)
     structs = readHeaderFile(pckg_path+'/'+db_name+'/include/'+db_name+'.h')
-    fiilMessage(structs,pckg_path+'/'+db_name+'/msg/'+msg_name+'.msg',dbc_path)
-    writeCpp(structs,pckg_path+'/'+db_name+'/src/parser.cpp',msg_name,db_name,sbs_topic,pbs_topic)
+    fillMessage(structs,pckg_path+'/'+db_name+'/msg/'+msg_name+'.msg',dbc_path)
+    writeCpp(structs,pckg_path+'/'+db_name+'/src/parser.cpp',msg_name,db_name,sbs_topic,pbs_topic) 
+                                                        
+if __name__ == '__main__':
+    exit(main())

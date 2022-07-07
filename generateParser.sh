@@ -1,13 +1,15 @@
 #!/bin/sh
 
-#TODO: Create python venv and install cantools.
-
 db_name=$1
 dbc_path=$2
 pckg_path=$3
 msg_name=$4
 sbs_topic=$5
 pbs_topic=$6
+
+python3 -m venv env
+. env/bin/activate
+pip install cantools
 
 cd $pckg_path
 catkin_create_pkg $db_name std_msgs roscpp can_msgs message_generation
@@ -16,6 +18,7 @@ rm -rf $db_name
 cd ../src
 touch parser.cpp
 cantools generate_c_source --database-name $db_name $dbc_path
+deactivate
 mv $db_name.c $db_name.cpp
 mv $db_name.h ../include
 cd ..
