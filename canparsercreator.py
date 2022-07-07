@@ -7,6 +7,9 @@
 #publisher topic name = Topic name to publish our message
 #Usage: python3 canparsercreator.py <package name> <dbc path> <package path> <package message name> <subscribing topic name for can messages> <publisher topic name>
 
+from curses.ascii import isupper
+from posixpath import split
+import re
 import sys
 import os
 
@@ -60,15 +63,83 @@ def readHeaderFile(filename):
                                
     return signalGroups   
 
+#Converts signal names in the DBC to names in the header file
+def DbcNametoHeadName(sigNames):
+    convertedNames = []
+    for name in sigNames:
+        prev = 'k'
+        for index in range(0,len(name)):
+            if isupper(name[0]):
+                name = name[:index] + name[index].lower() + name[index+1:]
+                prev = 'b' 
+                
+            if not index == 0:
+                if isupper(name[index]) and prev == 'k':
+                    name = name[:index] + name[index].lower() + name[index+1:]
+                    name = name[:index] + "_" + name[index:]
+                    prev = 'b'
+                
+                elif isupper(name[index]) and (prev == 'b' or prev == '_'):
+                    name = name[:index] + name[index].lower() + name[index+1:]
+                    prev = 'b'
+                    
+                elif name[index] == '_':
+                    prev = '_'
+                    
+                else:
+                    prev = 'k'        
+                         
+        convertedNames.append(name)
+                       
+    return convertedNames
+
+def bitDetermine(range):
+    min = range.replace('[','').replace(']','').split('|')[0]
+    minFloat = float(min)
+    max = range.replace('[','').replace(']','').split('|')[1]
+    maxFloat = float(max)
+    total = float()
+    if minFloat < 0 and maxFloat > 0:
+        total = maxFloat - minFloat
+        
+    elif minFloat < 0 and maxFloat < 0:
+        total = -maxFloat - minFloat     
+    
+    else:
+        total = maxFloat + minFloat
+        
+    if total < 256:
+        return 8
+    
+    elif total < 65536:
+        return 16
+    
+    elif total < 4294967296:
+        return 32    
+    
+    else:
+        return 64
+
 #Converts the dbc encoding to utf-8 and determines the types in the message according to dbc and writes to the message file.                                 
 def fiilMessage(structs,msg_path,dbc_path):
+    #Search how to find encode format of the dbc, throw exception
     os.system("iconv -f windows-1252 -t utf-8 " + dbc_path + " > " + dbc_path+".txt")
+    regexPattern = '(\[.+\|.+\])'
     vals = []
+    signalName = []
+    signalId = []
     with open(dbc_path+".txt") as dbc:
         for line in dbc:
             if 'VAL_ ' in line:
-                vals.append(line.strip().split()[2].lower())               
-   
+                vals.append(line.split()[2])
+                
+            if re.search(regexPattern,line.rstrip('\n')):
+                signalName.append(line.rstrip('\n').split()[1])
+                signalId.append(line.rstrip('\n').split()[5])
+                    
+    signalName = DbcNametoHeadName(signalName)
+    vals = DbcNametoHeadName(vals)     
+                               
     with open(msg_path, 'w') as mf:
         mf.write("std_msgs/Header header\n")
         mf.write("\n")
@@ -77,9 +148,17 @@ def fiilMessage(structs,msg_path,dbc_path):
             mf.write("%s\n" % struct.frameId)
             for signal in struct.signals:
                 if (signal in vals):
-                    mf.write("uint64 %s\n" % signal)              
+                    mf.write("uint")
+                    mf.write("%d" %bitDetermine(signalId[signalName.index(signal)]))
+                    mf.write(" %s\n" %signal)
                 else:
-                    mf.write("float64 %s\n" % signal)
+                    mf.write("float")
+                    bit = bitDetermine(signalId[signalName.index(signal)])
+                    if bit < 32:
+                        bit = 32
+                    mf.write("%d" %bit)
+                    mf.write(" %s\n" %signal)
+                    
             mf.write("\n")
     
     os.system("rm -rf " +dbc_path+".txt")                
@@ -91,9 +170,9 @@ def writeCpp(structs,srcPath,msgName,dbName,sbsTopic,pbsTopic):
     for struct in structs:
         pName = ''.join(struct.name.split('_')[1:len(struct.name.split('_'))-1])
         classPrivate += '\t\t'+struct.name+' *'+pName+' = new '+struct.name+';\n' 
-    
+    # add max int and use it
     callBack = '\n\t\tvoid canCallback(const can_msgs::Frame msg){\n\t\t\t'+msgName+' '+msgName.lower()+'_msg;\n\t\t\tuint id = (msg.id > 2147483647) ? msg.id ^ 0x80000000 : msg.id;\n\t\t\tswitch(id){\n'
-    
+    #add _ to struct names
     for struct in structs:
         pName = ''.join(struct.name.split('_')[1:len(struct.name.split('_'))-1])
         callBack += '\t\t\tcase ' +struct.header + ':\n'
@@ -118,3 +197,6 @@ if __name__ == '__main__':
     structs = readHeaderFile(pckg_path+'/'+db_name+'/include/'+db_name+'.h')
     fiilMessage(structs,pckg_path+'/'+db_name+'/msg/'+msg_name+'.msg',dbc_path)
     writeCpp(structs,pckg_path+'/'+db_name+'/src/parser.cpp',msg_name,db_name,sbs_topic,pbs_topic)
+    for s in structs:
+        for sig in s.signals:
+            print(sig)
