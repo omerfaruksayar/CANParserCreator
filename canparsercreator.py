@@ -180,7 +180,7 @@ def writeCpp(structs,srcPath,msgName,dbName,sbsTopic,pbsTopic):
               
     classPublic = 'class '+dbName.upper()+'Feedback{\n\tpublic:\n\t\t'+dbName.upper()+\
     'Feedback(){\n\t\t\tros::NodeHandle private_nh;\n\t\t\tcan_sub = private_nh.subscribe("'+sbsTopic+'", 1000, &'+dbName.upper()+\
-    'Feedback::canCallback, this);\n\t\t\t'+dbName+'_publisher = private_nh.advertise<'+dbName+'::'+msgName+'>("'+dbName.upper()+ \
+    'Feedback::canCallback, this);\n\t\t\t'+dbName+'_publisher = private_nh.advertise<'+dbName+'::'+msgName+'>("'+pbsTopic+ \
     '_feedback", 1000);\n\t\t}\n\t\t~'+dbName.upper()+'Feedback(){}'
     
     classPrivate = '\n\tprivate:\n\t\tros::Publisher '+dbName+'_publisher;\n\t\tros::Subscriber can_sub;\n'
