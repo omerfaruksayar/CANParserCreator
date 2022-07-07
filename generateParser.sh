@@ -28,17 +28,17 @@ sed -i '17,209d' CMakeLists.txt
 echo 'add_message_files(
    FILES
    '$msg_name'.msg
- )' >> CMakeLists.txt
+)' >> CMakeLists.txt
 
  echo "generate_messages(
    DEPENDENCIES
    can_msgs
    std_msgs
- )" >> CMakeLists.txt
+)" >> CMakeLists.txt
 
  echo "catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES cantool
+  LIBRARIES $db_name
   CATKIN_DEPENDS can_msgs roscpp std_msgs message_runtime
 #  DEPENDS system_lib
 )" >> CMakeLists.txt
@@ -50,7 +50,7 @@ echo 'include_directories(
 
 echo 'add_library(${PROJECT_NAME}
    src/'$db_name'.cpp
- )' >> CMakeLists.txt
+)' >> CMakeLists.txt
 
 echo 'add_executable('$db_name'_node src/parser.cpp src/'$db_name'.cpp)' >> CMakeLists.txt
 
@@ -58,16 +58,16 @@ echo 'add_dependencies('$db_name'_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${cat
 
 echo 'target_link_libraries('$db_name'_node
    ${catkin_LIBRARIES}
- )' >> CMakeLists.txt
+)' >> CMakeLists.txt
 
 echo 'install(TARGETS ${PROJECT_NAME}
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
- )' >> CMakeLists.txt
+)' >> CMakeLists.txt
 
-echo 'install(DIRECTORY include/${PROJECT_NAME}/
+echo 'install(DIRECTORY include/
    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
    FILES_MATCHING PATTERN "*.h"
    PATTERN ".svn" EXCLUDE
- )' >> CMakeLists.txt
+)' >> CMakeLists.txt

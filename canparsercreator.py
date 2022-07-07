@@ -148,52 +148,75 @@ def fiilMessage(structs,msg_path,dbc_path):
             for signal in struct.signals:
                 if (signal in vals):
                     mf.write("uint")
-                    mf.write("%d" %bitDetermine(signalId[signalName.index(signal)]))
-                    mf.write(" %s\n" %signal)
+                    try:
+                        mf.write("%d " %bitDetermine(signalId[signalName.index(signal)]))
+                    except:
+                        print("Signal "+signal+" did not find in the DBC")
+                        return -1
+                    
+                    mf.write('_'.join(struct.name.split('_')[1:len(struct.name.split('_'))-1]))        
+                    mf.write("_%s\n" %signal)
                 else:
                     mf.write("float")
-                    bit = bitDetermine(signalId[signalName.index(signal)])
+                    try:
+                        bit = bitDetermine(signalId[signalName.index(signal)])
+                    except:
+                        print("Signal "+signal+" did not find in the DBC")
+                        return -1
+                    
                     if bit < 32:
                         bit = 32
-                    mf.write("%d" %bit)
-                    mf.write(" %s\n" %signal)
+                    mf.write("%d " %bit)
+                    mf.write('_'.join(struct.name.split('_')[1:len(struct.name.split('_'))-1])) 
+                    mf.write("_%s\n" %signal)
                     
             mf.write("\n")
-    
     os.system("rm -rf " +dbc_path+".txt")                
                                     
 def writeCpp(structs,srcPath,msgName,dbName,sbsTopic,pbsTopic):
     
-    headers = '#include <ros/ros.h>\n#include "can_msgs/Frame.h"\n#include "'+dbName+'.h"\n#include "'+msgName+'.h"\n \
-    using namespace std;'
+    headers = '#include <ros/ros.h>\n#include "can_msgs/Frame.h"\n#include "'+dbName+'.h"\n#include "'+db_name+'/'+msgName+\
+    '.h"\nusing namespace std;'
               
-    classPublic = 'class '+dbName.upper()+'Feedback{\n\tpublic:\n\t\t'+dbName.upper()+'Feedback(){\n\
-    \t\t\tros::NodeHandle private_nh;\n\t\t\tcan_sub = private_nh.subscribe("'+sbsTopic+'", 1000, &'+dbName.upper()+ \
-    'Feedback::canCallback, this);\n\t\t\t'+dbName+'_publisher = private_nh.advertise<'+msgName+'>("'+dbName.upper()+ \
+    classPublic = 'class '+dbName.upper()+'Feedback{\n\tpublic:\n\t\t'+dbName.upper()+\
+    'Feedback(){\n\t\t\tros::NodeHandle private_nh;\n\t\t\tcan_sub = private_nh.subscribe("'+sbsTopic+'", 1000, &'+dbName.upper()+\
+    'Feedback::canCallback, this);\n\t\t\t'+dbName+'_publisher = private_nh.advertise<'+dbName+'::'+msgName+'>("'+dbName.upper()+ \
     '_feedback", 1000);\n\t\t}\n\t\t~'+dbName.upper()+'Feedback(){}'
     
     classPrivate = '\n\tprivate:\n\t\tros::Publisher '+dbName+'_publisher;\n\t\tros::Subscriber can_sub;\n'
     
     for struct in structs:
-        pName = ''.join(struct.name.split('_')[1:len(struct.name.split('_'))-1])
+        pName = '_'.join(struct.name.split('_')[1:len(struct.name.split('_'))-1])
         classPrivate += '\t\t'+struct.name+' *'+pName+' = new '+struct.name+';\n' 
 
-    callBack = '\n\t\tvoid canCallback(const can_msgs::Frame msg){\n\t\t\t'+msgName+' '+msgName.lower()+'_msg;\n \
-    \t\t\tuint id = (msg.id > 2147483647) ? msg.id ^ 0x80000000 : msg.id;\n\t\t\tswitch(id){\n'
+    callBack = '\n\t\tvoid canCallback(const can_msgs::Frame msg){\n\t\t\t'+dbName+'::'+msgName+' '+msgName.lower()+\
+    '_msg;\n\t\t\tuint id = (msg.id > 2147483647) ? msg.id ^ 0x80000000 : msg.id;\n\t\t\tswitch(id){\n'
     
     #add _ to struct names
     for struct in structs:
-        pName = ''.join(struct.name.split('_')[1:len(struct.name.split('_'))-1])
-        callBack += '\t\t\tcase ' +struct.header + ':\n'
-        callBack += '\t\t\t\t'+struct.header.lower().replace("_frame_id","_unpack")+'('+ pName + ',msg.data,data(),8);\n'
+        pName = '_'.join(struct.name.split('_')[1:len(struct.name.split('_'))-1])
+        callBack += '\n\t\t\tcase ' +struct.header + ':\n'
+        callBack += '\t\t\t\t'+struct.header.lower().replace("_frame_id","_unpack")+'('+ pName + ',msg.data.data(),8);\n'
         for signal in struct.signals:
-            callBack += '\t\t\t\t'
-      
+            callBack += '\t\t\t\t'+msgName.lower()+'_msg.'+'_'.join(struct.name.split('_')[1:len(struct.name.split('_'))-1])+'_'+signal+' = ' +'_'.join(struct.name.split('_')[0:len(struct.name.split('_'))-1])+\
+            '_'+signal+'_decode('+'_'.join(struct.name.split('_')[1:len(struct.name.split('_'))-1])+'->'+signal+');\n'
+            
+        callBack += '\t\t\t\tbreak;\n' 
+        
+    msgHeader = '\t\t\t'+msgName.lower()+'_msg.header.stamp = ros::Time::now();\n\t\t\t'+msgName.lower()+'_msg.header.seq++;\n\t\t\t'+dbName+\
+    '_publisher.publish('+msgName.lower()+'_msg);\n\t\t}\n};\n'
+    
+    intMain = '\nint main(int argc, char *argv[])\n{\n\tros::init(argc,argv,"'+dbName+'_feedback");\n\t'+dbName.upper()+'Feedback '+dbName+\
+    ';\n\tros::spin();\n\treturn 0;\n}'
+               
     with open(srcPath, 'w') as cpp:
         cpp.write(headers+'\n\n')
         cpp.write(classPublic+'\n')
         cpp.write(classPrivate)
-        cpp.write(callBack)                                   
+        cpp.write(callBack)
+        cpp.write('\n\t\t\tdefault:\n\t\t\t\tbreak;\n\t\t\t}\n')
+        cpp.write(msgHeader)  
+        cpp.write(intMain)                                 
                                                         
 if __name__ == '__main__':
     db_name = sys.argv[1]
