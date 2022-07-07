@@ -172,7 +172,8 @@ def fillMessage(structs,msg_path,dbc_path):
                     
             mf.write("\n")
     os.system("rm -rf " +dbc_path+".txt")                
-                                    
+
+#Creates the cpp file for the ROS node                                    
 def writeCpp(structs,srcPath,msgName,dbName,sbsTopic,pbsTopic):
     
     headers = '#include <ros/ros.h>\n#include "can_msgs/Frame.h"\n#include "'+dbName+'.h"\n#include "'+dbName+'/'+msgName+\
@@ -192,7 +193,6 @@ def writeCpp(structs,srcPath,msgName,dbName,sbsTopic,pbsTopic):
     callBack = '\n\t\tvoid canCallback(const can_msgs::Frame msg){\n\t\t\t'+dbName+'::'+msgName+' '+msgName.lower()+\
     '_msg;\n\t\t\tuint id = (msg.id > 2147483647) ? msg.id ^ 0x80000000 : msg.id;\n\t\t\tswitch(id){\n'
     
-    #add _ to struct names
     for struct in structs:
         pName = '_'.join(struct.name.split('_')[1:len(struct.name.split('_'))-1])
         callBack += '\n\t\t\tcase ' +struct.header + ':\n'
