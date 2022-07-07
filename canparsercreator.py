@@ -8,6 +8,7 @@
 #Usage: python3 canparsercreator.py <package name> <dbc path> <package path> <package message name> <subscribing topic name for can messages> <publisher topic name>
 
 from curses.ascii import isupper
+import chardet
 import re
 import sys
 import os
@@ -122,7 +123,9 @@ def bitDetermine(range):
 #Converts the dbc encoding to utf-8 and determines the types in the message according to dbc and writes to the message file.                                 
 def fillMessage(structs,msg_path,dbc_path):
     #Search how to find encode format of the dbc, throw exception
-    os.system("iconv -f windows-1252 -t utf-8 " + dbc_path + " > " + dbc_path+".txt")
+    charenc = open('a.txt', 'r').readline().split()[1]
+    os.system('iconv -f '+charenc+' -t utf-8 ' + dbc_path + " > " + dbc_path+".txt")
+    os.system('rm a.txt')
     regexPattern = '(\[.+\|.+\])'
     vals = []
     signalName = []
