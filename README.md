@@ -13,13 +13,13 @@ Uses the header and source file and generates a ros package that contains a rosn
 
 ## Usage
 
-Program takes 6 parameters, 
-package name = Name of the package will be created in the given WS path
-dbc path = path for dbc file containing .dbc file
-package path = Path for WS/src
-package message name (optional) = Message file name will be created in the package
-subscribing topic name = Topic for can data
-publisher topic name = Topic name to publish our message    
+Program takes 6 parameters,<br />
+package name = Name of the package will be created in the given WS path <br />
+dbc path = path for dbc file containing .dbc file <br />
+package path = Path for WS/src <br />
+package message name (optional) = Message file name will be created in the package <br />
+subscribing topic name = Topic for can data <br />
+publisher topic name = Topic name to publish our message  <br />   
 
 ```
 python3 canparsercreator.py <package name> <dbc path> <package path> <package message name> <subscribing topic name for can messages> <publisher topic name>
