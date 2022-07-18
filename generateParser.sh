@@ -17,10 +17,18 @@ cd $db_name/include
 rm -rf $db_name
 cd ../src
 touch parser.cpp
+chmod +x parser.cpp
 cantools generate_c_source --database-name $db_name $dbc_path
 deactivate
 mv $db_name.c $db_name.cpp
 mv $db_name.h ../include
+cd ..
+mkdir launch
+cd launch
+touch parser.launch
+echo '<launch>
+   <node name="'$db_name'_node" pkg="'$db_name'" type="'$db_name'_node" />
+</launch>' >> parser.launch
 cd ..
 mkdir msg
 cd msg
