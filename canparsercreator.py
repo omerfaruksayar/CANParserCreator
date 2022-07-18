@@ -11,6 +11,7 @@ from curses.ascii import isupper
 import re
 import sys
 import os
+import subprocess
 
 class SignalGroupStruct:
     signals = []
@@ -122,9 +123,9 @@ def bitDetermine(range):
 #Converts the dbc encoding to utf-8 and determines the types in the message according to dbc and writes to the message file.                                 
 def fillMessage(structs,msg_path,dbc_path):
 
-    charenc = open('a.txt', 'r').readline().split()[1]
+    cmd = ['chardet3', dbc_path]
+    charenc = subprocess.Popen( cmd, stdout=subprocess.PIPE ).communicate()[0].split()[1].decode("utf-8")
     os.system('iconv -f '+charenc+' -t utf-8 ' + dbc_path + " > " + dbc_path+".txt")
-    os.system('rm a.txt')
     regexPattern = '(\[.+\|.+\])'
     vals = []
     signalName = []
@@ -245,7 +246,9 @@ def main():
     os.system("./generateParser.sh " + db_name + " " + dbc_path + " " + pckg_path + " " + msg_name + " " + sbs_topic + " " + pbs_topic)
     structs = readHeaderFile(pckg_path+'/'+db_name+'/include/'+db_name+'.h')
     fillMessage(structs,pckg_path+'/'+db_name+'/msg/'+msg_name+'.msg',dbc_path)
-    writeCpp(structs,pckg_path+'/'+db_name+'/src/parser.cpp',msg_name,db_name,sbs_topic,pbs_topic) 
-                                                        
+    writeCpp(structs,pckg_path+'/'+db_name+'/src/parser.cpp',msg_name,db_name,sbs_topic,pbs_topic)
+    stringMsg = 'Can parser [' +db_name+ '] was created SUCCESSFULLY!'
+    print(stringMsg)
+                                                            
 if __name__ == '__main__':
     exit(main())

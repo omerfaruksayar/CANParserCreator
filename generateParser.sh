@@ -11,7 +11,6 @@ python3 -m venv env
 . env/bin/activate
 pip install cantools
 pip install chardet
-chardet3 $dbc_path > a.txt
 cd $pckg_path
 catkin_create_pkg $db_name std_msgs roscpp can_msgs message_generation
 cd $db_name/include
