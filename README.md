@@ -28,4 +28,4 @@ python3 canparsercreator.py <package name> <dbc path> <package path> <package me
 
 ## Notes
 
-If a signal name in the header file does not match with the signal name in the DBC, program prints ==<signal_name>  did not find in the DBC==.
+If a signal name in the header file does not match with the signal name in the DBC, program prints <mark> <signal_name>  did not find in the DBC </mark>.
