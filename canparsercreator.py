@@ -5,7 +5,7 @@
 #package message name = Message file name will be created in the package
 #subscribing topic name = Topic for can data
 #publisher topic name = Topic name to publish our message
-#Usage: python3 canparsercreator.py <package name> <dbc path> <package path> <package message name> <subscribing topic name for can messages> <publisher topic name>
+#Usage: python3 canparsercreator.py <package name> <dbc path> <package path> <package message name>(Optional) <subscribing topic name for can messages> <publisher topic name>
 
 from curses.ascii import isupper
 import re
@@ -124,8 +124,14 @@ def bitDetermine(range):
 def fillMessage(structs,msg_path,dbc_path):
 
     cmd = ['chardet3', dbc_path]
-    charenc = subprocess.Popen( cmd, stdout=subprocess.PIPE ).communicate()[0].split()[1].decode("utf-8")
-    os.system('iconv -f '+charenc+' -t utf-8 ' + dbc_path + " > " + dbc_path+".txt")
+    charenc = subprocess.Popen(cmd, stdout=subprocess.PIPE ).communicate()[0].split()[1].decode("utf-8")
+    print('\nDetected encoding format of the DBC is ' + charenc +'\n')
+    try:
+        os.system('iconv -f '+charenc+' -t utf-8 ' + dbc_path + " > " + dbc_path+".txt")
+        
+    except:
+        print('DBC could not opened with detected encoding format!')    
+        
     regexPattern = '(\[.+\|.+\])'
     vals = []
     signalName = []
@@ -176,7 +182,7 @@ def fillMessage(structs,msg_path,dbc_path):
             mf.write("\n")
     os.system("rm -rf " +dbc_path+".txt")                
 
-#Creates the cpp file for the ROS node                                    
+#Writes ROS node                                    
 def writeCpp(structs,srcPath,msgName,dbName,sbsTopic,pbsTopic):
     
     headers = '#include <ros/ros.h>\n#include "can_msgs/Frame.h"\n#include "'+dbName+'.h"\n#include "'+dbName+'/'+msgName+\
@@ -242,8 +248,14 @@ def main():
         print("Invalid Arguments!")
         print("Usage: python3 canparsercreator.py <package name> <dbc path> <package path> <package message name>(Optional) <subscribing topic name for can messages> <publisher topic name>")
         return -1
-        
-    os.system("./generateParser.sh " + db_name + " " + dbc_path + " " + pckg_path + " " + msg_name + " " + sbs_topic + " " + pbs_topic)
+    
+    files = os.listdir('.')
+    if not 'env' in files:
+        os.system("chmod +x scripts/install.sh")
+        os.system("scripts/install.sh")
+    
+    os.system("chmod +x scripts/generateParser.sh")       
+    os.system("scripts/generateParser.sh " + db_name + " " + dbc_path + " " + pckg_path + " " + msg_name + " " + sbs_topic + " " + pbs_topic)
     structs = readHeaderFile(pckg_path+'/'+db_name+'/include/'+db_name+'.h')
     fillMessage(structs,pckg_path+'/'+db_name+'/msg/'+msg_name+'.msg',dbc_path)
     writeCpp(structs,pckg_path+'/'+db_name+'/src/parser.cpp',msg_name,db_name,sbs_topic,pbs_topic)

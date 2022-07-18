@@ -7,10 +7,7 @@ msg_name=$4
 sbs_topic=$5
 pbs_topic=$6
 
-python3 -m venv env
 . env/bin/activate
-pip install cantools
-pip install chardet
 cd $pckg_path
 catkin_create_pkg $db_name std_msgs roscpp can_msgs message_generation
 cd $db_name/include
@@ -19,7 +16,6 @@ cd ../src
 touch parser.cpp
 chmod +x parser.cpp
 cantools generate_c_source --database-name $db_name $dbc_path
-deactivate
 mv $db_name.c $db_name.cpp
 mv $db_name.h ../include
 cd ..
@@ -82,3 +78,5 @@ echo 'install(DIRECTORY include/
    FILES_MATCHING PATTERN "*.h"
    PATTERN ".svn" EXCLUDE
 )' >> CMakeLists.txt
+
+deactivate
