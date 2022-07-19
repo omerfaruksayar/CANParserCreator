@@ -13,18 +13,18 @@ catkin_create_pkg $db_name std_msgs roscpp can_msgs message_generation
 cd $db_name/include
 rm -rf $db_name
 cd ../src
-touch parser.cpp
-chmod +x parser.cpp
+touch $db_name'_parser.cpp'
+chmod +x $db_name'_parser.cpp'
 cantools generate_c_source --database-name $db_name $dbc_path
 mv $db_name.c $db_name.cpp
 mv $db_name.h ../include
 cd ..
 mkdir launch
 cd launch
-touch parser.launch
+touch $db_name'_parser.launch'
 echo '<launch>
    <node name="'$db_name'_node" pkg="'$db_name'" type="'$db_name'_node" />
-</launch>' >> parser.launch
+</launch>' >> $db_name'_parser.launch'
 cd ..
 mkdir msg
 cd msg
@@ -59,7 +59,7 @@ echo 'add_library(${PROJECT_NAME}
    src/'$db_name'.cpp
 )' >> CMakeLists.txt
 
-echo 'add_executable('$db_name'_node src/parser.cpp src/'$db_name'.cpp)' >> CMakeLists.txt
+echo 'add_executable('$db_name'_node src/'$db_name'_parser.cpp src/'$db_name'.cpp)' >> CMakeLists.txt
 
 echo 'add_dependencies('$db_name'_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})' >> CMakeLists.txt
 

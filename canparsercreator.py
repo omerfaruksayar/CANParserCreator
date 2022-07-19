@@ -258,7 +258,7 @@ def main():
     os.system("scripts/generateParser.sh " + db_name + " " + dbc_path + " " + pckg_path + " " + msg_name + " " + sbs_topic + " " + pbs_topic)
     structs = readHeaderFile(pckg_path+'/'+db_name+'/include/'+db_name+'.h')
     fillMessage(structs,pckg_path+'/'+db_name+'/msg/'+msg_name+'.msg',dbc_path)
-    writeCpp(structs,pckg_path+'/'+db_name+'/src/parser.cpp',msg_name,db_name,sbs_topic,pbs_topic)
+    writeCpp(structs,pckg_path+'/'+db_name+'/src/'+db_name+'_parser.cpp',msg_name,db_name,sbs_topic,pbs_topic)
     stringMsg = 'Can parser [' +db_name+ '] was created SUCCESSFULLY!'
     print(stringMsg)
                                                             
