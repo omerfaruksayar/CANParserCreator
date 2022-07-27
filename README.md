@@ -4,7 +4,7 @@
 
 ```
     catkin_tools 0.9.0
-    python3
+    python3 - pip
 ```
 
 ## About
