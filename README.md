@@ -1,4 +1,4 @@
-# CANParserCreator for ROS1
+# CANParserCreator for ROS2
 
 ## Requeriments
 
