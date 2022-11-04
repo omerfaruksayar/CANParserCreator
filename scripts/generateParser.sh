@@ -9,7 +9,7 @@ pbs_topic=$6
 
 . env/bin/activate
 cd $pckg_path
-catkin_create_pkg $db_name std_msgs roscpp can_msgs message_generation
+ros2 pkg create --build-type ament_cmake $db_name std_msgs rclcpp can_msgs
 cd $db_name/include
 rm -rf $db_name
 cd ../src
@@ -30,7 +30,7 @@ mkdir msg
 cd msg
 touch $msg_name.msg
 cd ..
-sed -i '62 i \  <exec_depend>message_runtime</exec_depend>' package.xml
+sed -i '62 i \  <exec_depend>rosidl_default_runtime</exec_depend>' package.xml
 sed -i '17,209d' CMakeLists.txt
 echo 'add_message_files(
    FILES
