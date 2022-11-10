@@ -123,7 +123,7 @@ def bitDetermine(range):
 #Converts the dbc encoding to utf-8 and determines the types in the message according to dbc and writes to the message file.                                 
 def fillMessage(structs,msg_path,dbc_path):
 
-    cmd = ['chardet3', dbc_path]
+    cmd = ['chardet', dbc_path]
     charenc = subprocess.Popen(cmd, stdout=subprocess.PIPE ).communicate()[0].split()[1].decode("utf-8")
     print('\nDetected encoding format of the DBC is ' + charenc +'\n')
     try:

@@ -9,7 +9,7 @@ pbs_topic=$6
 
 . env/bin/activate
 cd $pckg_path
-ros2 pkg create --build-type ament_cmake $db_name std_msgs rclcpp can_msgs
+ros2 pkg create --build-type ament_cmake $db_name
 cd $db_name/include
 rm -rf $db_name
 cd ../src
@@ -30,53 +30,8 @@ mkdir msg
 cd msg
 touch $msg_name.msg
 cd ..
-sed -i '62 i \  <exec_depend>rosidl_default_runtime</exec_depend>' package.xml
-sed -i '17,209d' CMakeLists.txt
-echo 'add_message_files(
-   FILES
-   '$msg_name'.msg
-)' >> CMakeLists.txt
+sed -i '11 a \  <depend>rclcpp</depend>\n  <build_depend>rosidl_default_generators</build_depend>\n  <exec_depend>rosidl_default_runtime</exec_depend>\n  <member_of_group>rosidl_interface_packages</member_of_group>' package.xml
 
- echo "generate_messages(
-   DEPENDENCIES
-   can_msgs
-   std_msgs
-)" >> CMakeLists.txt
-
- echo "catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES $db_name
-  CATKIN_DEPENDS can_msgs roscpp std_msgs message_runtime
-#  DEPENDS system_lib
-)" >> CMakeLists.txt
-
-echo 'include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-)' >> CMakeLists.txt
-
-echo 'add_library(${PROJECT_NAME}
-   src/'$db_name'.cpp
-)' >> CMakeLists.txt
-
-echo 'add_executable('$db_name'_node src/'$db_name'_parser.cpp src/'$db_name'.cpp)' >> CMakeLists.txt
-
-echo 'add_dependencies('$db_name'_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})' >> CMakeLists.txt
-
-echo 'target_link_libraries('$db_name'_node
-   ${catkin_LIBRARIES}
-)' >> CMakeLists.txt
-
-echo 'install(TARGETS ${PROJECT_NAME}
-   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
-)' >> CMakeLists.txt
-
-echo 'install(DIRECTORY include/
-   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-   FILES_MATCHING PATTERN "*.h"
-   PATTERN ".svn" EXCLUDE
-)' >> CMakeLists.txt
+sed -i '10 a find_package(rosidl_default_generators REQUIRED)\nfind_package(rclcpp REQUIRED)\n\nadd_executable('$db_name'_node src/'$db_name'_parser.cpp src/'$db_name'.cpp)\nament_target_dependencies('$db_name'_node rclcpp)\n\ninstall(TARGETS\n  '$db_name'_node\n  DESTINATION lib/${PROJECT_NAME})\n\nrosidl_generate_interfaces(${PROJECT_NAME}\n  "msg/'$msg_name'.msg"\n  DEPENDENCIES std_msgs)' CMakeLists.txt
 
 deactivate
