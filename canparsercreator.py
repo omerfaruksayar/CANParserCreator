@@ -182,18 +182,16 @@ def fillMessage(structs,msg_path,dbc_path):
             mf.write("\n")
     os.system("rm -rf " +dbc_path+".txt")                
 
-#Writes ROS node                                    
+#Writes ROS2 node                                    
 def writeCpp(structs,srcPath,msgName,dbName,sbsTopic,pbsTopic):
     
     headers = '#include "rclcpp/rclcpp.hpp"\n#include "can_msgs/msg/frame.hpp"\n#include "'+dbName+'.h"\n#include "'+dbName+'/msg/'+msgName.lower()+\
-    '.hpp"\nusing namespace std;'
+    '.hpp"\nusing std::placeholders::_1;'
               
-    classPublic = 'class '+dbName.upper()+'Feedback{\n\tpublic:\n\t\t'+dbName.upper()+\
-    'Feedback(){\n\t\t\tros::NodeHandle private_nh;\n\t\t\tcan_sub = private_nh.subscribe("'+sbsTopic+'", 1000, &'+dbName.upper()+\
-    'Feedback::canCallback, this);\n\t\t\t'+dbName+'_publisher = private_nh.advertise<'+dbName+'::'+msgName+'>("'+pbsTopic+\
-    '", 1000);\n\t\t}\n\t\t~'+dbName.upper()+'Feedback(){}'
+    classPublic = 'class '+dbName.capitalize()+'Feedback : public rclcpp::Node{\n\tpublic:\n\t\t'+dbName.capitalize()+\
+    'Feedback() : Node("'+dbName+'_feedback"){\n\t\t\tpublisher_ = this->create_publisher<'+dbName+'::msg::'+msgName+'>("'+pbsTopic+'", 10);\n\t\t\tsubscription_ = this->create_subscription<can_msgs::msg::Frame>("'+sbsTopic+'", 10, std::bind(&'+dbName.capitalize()+'Feedback::canCallback, this, _1));\n\t\t}'
     
-    classPrivate = '\n\tprivate:\n\t\tros::Publisher '+dbName+'_publisher;\n\t\tros::Subscriber can_sub;\n'
+    classPrivate = '\tprivate:\n\t\trclcpp::Publisher<'+dbName+'::msg::'+msgName+'>::SharedPtr publisher_;\n\t\trclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr subscription_;\n'
     
     for struct in structs:
         pName = '_'.join(struct.name.split('_')[1:len(struct.name.split('_'))-1])
