@@ -30,8 +30,8 @@ mkdir msg
 cd msg
 touch $msg_name.msg
 cd ..
-sed -i '11 a \  <depend>rclcpp</depend>\n  <build_depend>rosidl_default_generators</build_depend>\n  <exec_depend>rosidl_default_runtime</exec_depend>\n  <member_of_group>rosidl_interface_packages</member_of_group>' package.xml
+sed -i '11 a \  <depend>rclcpp</depend>\n  <depend>std_msgs</depend>\n  <depend>can_msgs</depend>\n  <build_depend>rosidl_default_generators</build_depend>\n  <exec_depend>rosidl_default_runtime</exec_depend>\n  <member_of_group>rosidl_interface_packages</member_of_group>' package.xml
 
-sed -i '10 a find_package(rosidl_default_generators REQUIRED)\nfind_package(rclcpp REQUIRED)\n\nadd_executable('$db_name'_node src/'$db_name'_parser.cpp src/'$db_name'.cpp)\nament_target_dependencies('$db_name'_node rclcpp)\n\ninstall(TARGETS\n  '$db_name'_node\n  DESTINATION lib/${PROJECT_NAME})\n\nrosidl_generate_interfaces(${PROJECT_NAME}\n  "msg/'$msg_name'.msg"\n  DEPENDENCIES std_msgs)' CMakeLists.txt
+sed -i '10 a find_package(rosidl_default_generators REQUIRED)\nfind_package(rclcpp REQUIRED)\nfind_package(can_msgs REQUIRED)\nfind_package(std_msgs REQUIRED)\n\ninclude_directories(include)\n\nadd_executable('$db_name'_node src/'$db_name'_parser.cpp src/'$db_name'.cpp)\nament_target_dependencies('$db_name'_node rclcpp can_msgs std_msgs)\n\ninstall(TARGETS\n  '$db_name'_node\n  DESTINATION lib/${PROJECT_NAME})\n\nrosidl_generate_interfaces(${PROJECT_NAME}\n  "msg/'$msg_name'.msg"\n  DEPENDENCIES std_msgs)\n\nament_export_dependencies(rosidl_default_runtime)\n\nrosidl_get_typesupport_target(cpp_typesupport_target\n  ${PROJECT_NAME} "rosidl_typesupport_cpp")\n\ntarget_link_libraries('$db_name'_node "${cpp_typesupport_target}")' CMakeLists.txt
 
 deactivate

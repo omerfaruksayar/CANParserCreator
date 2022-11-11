@@ -185,8 +185,8 @@ def fillMessage(structs,msg_path,dbc_path):
 #Writes ROS node                                    
 def writeCpp(structs,srcPath,msgName,dbName,sbsTopic,pbsTopic):
     
-    headers = '#include <ros/ros.h>\n#include "can_msgs/Frame.h"\n#include "'+dbName+'.h"\n#include "'+dbName+'/'+msgName+\
-    '.h"\nusing namespace std;'
+    headers = '#include "rclcpp/rclcpp.hpp"\n#include "can_msgs/msg/frame.hpp"\n#include "'+dbName+'.h"\n#include "'+dbName+'/msg/'+msgName.lower()+\
+    '.hpp"\nusing namespace std;'
               
     classPublic = 'class '+dbName.upper()+'Feedback{\n\tpublic:\n\t\t'+dbName.upper()+\
     'Feedback(){\n\t\t\tros::NodeHandle private_nh;\n\t\t\tcan_sub = private_nh.subscribe("'+sbsTopic+'", 1000, &'+dbName.upper()+\
