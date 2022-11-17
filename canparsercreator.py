@@ -197,7 +197,7 @@ def writeCpp(structs,srcPath,msgName,dbName,sbsTopic,pbsTopic):
         pName = '_'.join(struct.name.split('_')[1:len(struct.name.split('_'))-1])
         classPrivate += '\t\t'+struct.name+' *'+pName+' = new '+struct.name+';\n' 
 
-    callBack = '\n\t\tvoid canCallback(const can_msgs::Frame msg){\n\t\t\t'+dbName+'::'+msgName+' '+msgName.lower()+\
+    callBack = '\n\t\tvoid canCallback(const can_msgs::msg::Frame msg){\n\t\t\t'+dbName+'::msg::'+msgName+' '+msgName.lower()+\
     '_msg;\n\t\t\tuint id = (msg.id > 2147483647) ? msg.id ^ 0x80000000 : msg.id;\n\t\t\tswitch(id){\n'
     
     for struct in structs:
@@ -210,11 +210,9 @@ def writeCpp(structs,srcPath,msgName,dbName,sbsTopic,pbsTopic):
             
         callBack += '\t\t\t\tbreak;\n' 
         
-    msgHeader = '\t\t\t'+msgName.lower()+'_msg.header.stamp = ros::Time::now();\n\t\t\t'+msgName.lower()+'_msg.header.seq++;\n\t\t\t'+dbName+\
-    '_publisher.publish('+msgName.lower()+'_msg);\n\t\t}\n};\n'
+    msgHeader = '\t\t\t'+msgName.lower()+'_msg.header.stamp = this->get_clock()->now();\n\t\t\tpublisher_->publish('+msgName.lower()+'_msg);\n\t\t}\n};\n'
     
-    intMain = '\nint main(int argc, char *argv[])\n{\n\tros::init(argc,argv,"'+dbName+'_feedback");\n\t'+dbName.upper()+'Feedback '+dbName+\
-    ';\n\tros::spin();\n\treturn 0;\n}'
+    intMain = '\nint main(int argc, char *argv[])\n{\n\trclcpp::init(argc, argv);\n\trclcpp::spin(std::make_shared<'+dbName.capitalize()+'Feedback>());\n\trclcpp::shutdown();\n\treturn 0;\n}'
                
     with open(srcPath, 'w') as cpp:
         cpp.write(headers+'\n\n')
