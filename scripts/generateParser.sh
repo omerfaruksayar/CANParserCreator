@@ -9,7 +9,7 @@ pbs_topic=$6
 
 . env/bin/activate
 cd $pckg_path
-catkin_create_pkg $db_name std_msgs roscpp can_msgs message_generation
+catkin create pkg $db_name --catkin-deps std_msgs roscpp can_msgs message_generation message_runtime
 cd $db_name/include
 rm -rf $db_name
 cd ../src
@@ -30,7 +30,6 @@ mkdir msg
 cd msg
 touch $msg_name.msg
 cd ..
-sed -i '62 i \  <exec_depend>message_runtime</exec_depend>' package.xml
 sed -i '17,209d' CMakeLists.txt
 echo 'add_message_files(
    FILES
