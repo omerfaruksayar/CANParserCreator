@@ -1,11 +1,9 @@
-#Program takes 6 parameters, 
+#Program takes 4 parameters, 
 #package name = Name of the package will be created in the given WS path
 #dbc path = path for dbc file containing .dbc file
 #package path = Path for WS/src
-#package message name = Message file name will be created in the package
 #subscribing topic name = Topic for can data
-#publisher topic name = Topic name to publish our message
-#Usage: python3 canparsercreator.py <package name> <dbc path> <package path> <package message name>(Optional) <subscribing topic name for can messages> <publisher topic name>
+#Usage: python3 canparsercreator.py <package name> <dbc path> <package path> <subscribing topic name for can messages>
 
 from curses.ascii import isupper
 import re
