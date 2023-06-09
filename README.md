@@ -24,15 +24,16 @@ Published Topic: /outboundPublishingTopicName (can_mags/Frame)
 
 ## Usage
 
-Program takes 5 parameters,<br />
+Program takes 6 parameters,<br />
 package name = Name of the package will be created in the given WS path <br />
 dbc path = path for dbc file containing .dbc file <br />
 package path = Path for WS/src <br />
+filter file path = Path of the filter file.
 subscribing topic name = Topic for inbound can data (can_msgs/Frame) <br />
 publisher topic name = Topic for outbound can data (can_msgs/Frame) <br />  
 
 ```
-python3 canparsercreator.py <package name> <dbc path> <package path> <subscribing topic name for can messages> <publishing topic name for can messages>
+python3 canparsercreator.py <package name> <dbc path> <package path> <filter file path> <subscribing topic name for can messages> <publishing topic name for can messages>
 ```
 
 ## Notes

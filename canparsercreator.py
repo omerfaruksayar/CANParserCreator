@@ -26,7 +26,7 @@ class SignalGroupStruct:
             print(s)   
     
 #Reads the header file into a SignalGroupStruct list and returns the list.
-def readHeaderFile(filename,db_name):
+def readHeaderFile(filename,db_name,filter_file_path):
     frameIds = []
     signals = []
     signalGroups = []
@@ -62,7 +62,7 @@ def readHeaderFile(filename,db_name):
 
     filterList = []
 
-    with open('signal_filter.json') as file:
+    with open(filter_file_path) as file:
         data = json.load(file)
         filterList = data['inbound']
         filterList += data['outbound']
@@ -194,12 +194,12 @@ def fillMessage(structs,msg_path,dbc_path,pkgName):
     os.system("rm -rf " +dbc_path+".txt")                
 
 #Writes ROS node                                    
-def writeCpp(structs,srcPath,pkgName,sbsTopic, pubTopic):
+def writeCpp(structs,srcPath,pkgName,sbsTopic, pubTopic, filter_file_path):
 
     inbound_filter = []
     outbound_filter = []
 
-    with open('signal_filter.json') as file:
+    with open(filter_file_path) as file:
         data = json.load(file)
         inbound_filter = data['inbound']
         outbound_filter = data['outbound']
@@ -321,16 +321,17 @@ def update_CMakeLists(structs,srcPath,pkgName):
 
 
 def main():        
-    if len(sys.argv) == 6:
+    if len(sys.argv) == 7:
         pkg_name = sys.argv[1]
         dbc_path = sys.argv[2]
         pckg_path = sys.argv[3]
-        sbs_topic = sys.argv[4]
-        pub_topic = sys.argv[5]
+        filter_file_path = sys.argv[4]
+        sbs_topic = sys.argv[5]
+        pub_topic = sys.argv[6]
         
     else:
         print("Invalid Arguments!")
-        print("Usage: python3 canparsercreator.py <package name> <dbc path> <package path> <subscribing topic name for can messages> <publishing topic name for can messages>")
+        print("Usage: python3 canparsercreator.py <package name> <dbc path> <package path> <filter file path> <subscribing topic name for can messages> <publishing topic name for can messages>")
         return -1
     
     files = os.listdir('.')
@@ -340,10 +341,10 @@ def main():
     
     os.system("chmod +x scripts/generateParser.sh")       
     os.system("scripts/generateParser.sh " + pkg_name + " " + dbc_path + " " + pckg_path + " " + sbs_topic)
-    structs = readHeaderFile(pckg_path+'/'+pkg_name+'/include/'+pkg_name+'.h',pkg_name)
+    structs = readHeaderFile(pckg_path+'/'+pkg_name+'/include/'+pkg_name+'.h',pkg_name, filter_file_path)
     fillMessage(structs,pckg_path+'/'+pkg_name+'/msg/',dbc_path,pkg_name)
     update_CMakeLists(structs,pckg_path+'/'+pkg_name,pkg_name)
-    writeCpp(structs,pckg_path+'/'+pkg_name+'/src/'+pkg_name+'_parser.cpp',pkg_name,sbs_topic, pub_topic)
+    writeCpp(structs,pckg_path+'/'+pkg_name+'/src/'+pkg_name+'_parser.cpp',pkg_name,sbs_topic, pub_topic, filter_file_path)
     stringMsg = 'Can parser [' +pkg_name+ '] was created SUCCESSFULLY!'
     print(stringMsg)
                                                             
