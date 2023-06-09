@@ -7,7 +7,7 @@ sbs_topic=$4
 
 . env/bin/activate
 cd $pckg_path
-catkin create pkg $db_name --catkin-deps std_msgs roscpp can_msgs message_generation
+catkin create pkg $db_name --catkin-deps std_msgs roscpp can_msgs message_generation message_runtime
 cd $db_name/include
 rm -rf $db_name
 cd ../src
