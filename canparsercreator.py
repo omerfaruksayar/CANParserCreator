@@ -131,7 +131,7 @@ def bitDetermine(range):
         return 64
 
 #Converts the dbc encoding to utf-8 and determines the types in the message according to dbc and writes to the message file.                                 
-def fillMessage(structs,msg_path,dbc_path):
+def fillMessage(structs,msg_path,dbc_path,pkgName):
 
     cmd = ['chardet3', dbc_path]
     charenc = subprocess.Popen(cmd, stdout=subprocess.PIPE ).communicate()[0].split()[1].decode("utf-8")
@@ -159,7 +159,7 @@ def fillMessage(structs,msg_path,dbc_path):
     vals = DbcNametoHeadName(vals)     
                                
     for struct in structs:
-        pName = '_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])
+        pName = '_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])
         with open(msg_path+pName+'_msg'+'.msg', 'w') as mf:
             mf.write("std_msgs/Header header\n")
             mf.write("\n")
@@ -187,14 +187,14 @@ def fillMessage(structs,msg_path,dbc_path):
                     if bit < 32:
                         bit = 32
                     mf.write("%d " %bit)
-                    # mf.write('_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])) 
+                    # mf.write('_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])) 
                     mf.write("%s\n" %signal)
                     
             mf.write("\n")
     os.system("rm -rf " +dbc_path+".txt")                
 
 #Writes ROS node                                    
-def writeCpp(structs,srcPath,dbName,sbsTopic, pubTopic):
+def writeCpp(structs,srcPath,pkgName,sbsTopic, pubTopic):
 
     inbound_filter = []
     outbound_filter = []
@@ -204,8 +204,8 @@ def writeCpp(structs,srcPath,dbName,sbsTopic, pubTopic):
         inbound_filter = data['inbound']
         outbound_filter = data['outbound']
     
-    inbound_filter = [dbName + '_' + element.lower() + '_t' for element in inbound_filter]
-    outbound_filter = [dbName + '_' + element.lower() + '_t' for element in outbound_filter]
+    inbound_filter = [pkgName + '_' + element.lower() + '_t' for element in inbound_filter]
+    outbound_filter = [pkgName + '_' + element.lower() + '_t' for element in outbound_filter]
 
     # print(inbound_filter)
     # print(outbound_filter)
@@ -221,41 +221,41 @@ def writeCpp(structs,srcPath,dbName,sbsTopic, pubTopic):
             outbound_filter.append(struct.name)
     
 
-    headers = '#include <ros/ros.h>\n#include "can_msgs/Frame.h"\n#include "'+dbName+'.h"\n'
+    headers = '#include <ros/ros.h>\n#include "can_msgs/Frame.h"\n#include "'+pkgName+'.h"\n'
     headers_msg = ""
     for struct in structs:
-        headers_msg += '#include "'+dbName+'/'+'_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])+'_msg.h"\n'
+        headers_msg += '#include "'+pkgName+'/'+'_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])+'_msg.h"\n'
     namespace = 'using namespace std;'
 
-    classPublic = 'class '+dbName.upper()+'Feedback{\n\tpublic:\n\t\t'+dbName.upper()+'Feedback(){\n'+\
+    classPublic = 'class '+pkgName.upper()+'Feedback{\n\tpublic:\n\t\t'+pkgName.upper()+'Feedback(){\n'+\
         '\t\t\tros::NodeHandle private_nh;\n'+\
         '\t\t\t// Inbound Messages from CAN to ROS\n'+\
-        '\t\t\tcan_sub = private_nh.subscribe("'+sbsTopic+'", 1, &'+dbName.upper()+'Feedback::canCallback, this);\n'
+        '\t\t\tcan_sub = private_nh.subscribe("'+sbsTopic+'", 1, &'+pkgName.upper()+'Feedback::canCallback, this);\n'
     for struct in [struct for struct in structs if struct.name in inbound_filter]:
-        classPublic += '\t\t\t'+'_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])+'_pub = private_nh.advertise<'+dbName+'::'+'_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])+'_msg'+'>("'+struct.name[:-2]+'", 1);\n'
+        classPublic += '\t\t\t'+'_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])+'_pub = private_nh.advertise<'+pkgName+'::'+'_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])+'_msg'+'>("'+struct.name[:-2]+'", 1);\n'
     classPublic += '\t\t\t// Outbound Messages from ROS to CAN \n'+\
         '\t\t\tcan_pub = private_nh.advertise<can_msgs::Frame>("'+pubTopic+'",1);\n'
     for struct in [struct for struct in structs if struct.name in outbound_filter]:
-        classPublic += '\t\t\t'+'_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])+'_sub = private_nh.subscribe("'+struct.name[:-2]+'", 1, &'+dbName.upper()+'Feedback::'+'_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])+'Callback, this);\n'
+        classPublic += '\t\t\t'+'_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])+'_sub = private_nh.subscribe("'+struct.name[:-2]+'", 1, &'+pkgName.upper()+'Feedback::'+'_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])+'Callback, this);\n'
     
-    classPublic += '\t\t}\n\t\t~'+dbName.upper()+'Feedback(){}'
+    classPublic += '\t\t}\n\t\t~'+pkgName.upper()+'Feedback(){}'
 
     classPrivate = '\n\tprivate:\n'
     classPrivate += '\t\tros::Subscriber can_sub;\n'
     for struct in [struct for struct in structs if struct.name in inbound_filter]:
-        classPrivate += '\t\tros::Publisher '+'_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])+'_pub;\n'
+        classPrivate += '\t\tros::Publisher '+'_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])+'_pub;\n'
     classPrivate += '\t\tros::Publisher can_pub;\n'
     for struct in [struct for struct in structs if struct.name in outbound_filter]:
-        classPrivate += '\t\tros::Subscriber '+'_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])+'_sub;\n'
+        classPrivate += '\t\tros::Subscriber '+'_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])+'_sub;\n'
     
     for struct in structs:
-        pName = '_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])
+        pName = '_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])
         classPrivate += '\t\t'+struct.name+' *'+pName+' = new '+struct.name+';\n'
 
     outboundCallBack = '\n'
     for struct in [struct for struct in structs if struct.name in outbound_filter]:
-        pName = '_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])
-        outboundCallBack += '\t\tvoid '+pName+'Callback(const '+dbName+'::'+pName+'_msg msg){\n'+\
+        pName = '_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])
+        outboundCallBack += '\t\tvoid '+pName+'Callback(const '+pkgName+'::'+pName+'_msg msg){\n'+\
             '\t\t\tcan_msgs::Frame can_frame;\n'
         for signal in struct.signals:
             outboundCallBack += '\t\t\t'+pName+'->'+signal+' = '+struct.name[:-2]+'_'+signal+'_encode(msg.'+signal+');\n'
@@ -271,18 +271,18 @@ def writeCpp(structs,srcPath,dbName,sbsTopic, pubTopic):
     inboundCallBack += '\t\t\tuint id = (msg.id > 2147483647) ? msg.id ^ 0x80000000 : msg.id;\n'
     
     for struct in [struct for struct in structs if struct.name in inbound_filter]:
-        pName = '_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])
-        inboundCallBack += '\t\t\t'+dbName+'::'+pName+'_msg '+pName+'_msg;\n'
+        pName = '_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])
+        inboundCallBack += '\t\t\t'+pkgName+'::'+pName+'_msg '+pName+'_msg;\n'
 
     inboundCallBack += '\n\t\t\tswitch(id){'
     
     for struct in [struct for struct in structs if struct.name in inbound_filter]:
-        pName = '_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])
+        pName = '_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])
         inboundCallBack += '\n\t\t\t\tcase ' +struct.header + ':\n'
         inboundCallBack += '\t\t\t\t\t'+struct.header.lower().replace("_frame_id","_unpack")+'('+ pName + ',msg.data.data(),8);\n'
         for signal in struct.signals:
             inboundCallBack += '\t\t\t\t\t'+pName+'_msg.'+signal+' = ' +'_'.join(struct.name.split('_')[0:len(struct.name.split('_'))-1])+\
-            '_'+signal+'_decode('+'_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])+'->'+signal+');\n'
+            '_'+signal+'_decode('+'_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])+'->'+signal+');\n'
         inboundCallBack += '\t\t\t\t\t'+pName+'_msg.header.stamp = ros::Time::now();\n'+\
             '\t\t\t\t\t'+pName+'_msg.header.seq++;\n'
         inboundCallBack += '\t\t\t\t\t'+pName+'_pub.publish('+pName+'_msg);\n'
@@ -292,7 +292,7 @@ def writeCpp(structs,srcPath,dbName,sbsTopic, pubTopic):
         \t\t\t\t\tROS_WARN(\"Unkown CAN_FRAME_ID\");\n\
         \t\t\t\t\tbreak;\n\t\t\t\t}\n\t}\n};\n'
     
-    intMain = '\nint main(int argc, char *argv[])\n{\n\tros::init(argc,argv,"'+dbName+'_feedback");\n\t'+dbName.upper()+'Feedback '+dbName+\
+    intMain = '\nint main(int argc, char *argv[])\n{\n\tros::init(argc,argv,"'+pkgName+'_feedback");\n\t'+pkgName.upper()+'Feedback '+pkgName+\
         ';\n\tros::spin();\n\treturn 0;\n}'
 
     with open(srcPath, 'w') as cpp:
@@ -306,21 +306,23 @@ def writeCpp(structs,srcPath,dbName,sbsTopic, pubTopic):
         cpp.write(default_case)
         cpp.write(intMain)
 
-def update_CMakeLists(structs,srcPath):
+def update_CMakeLists(structs,srcPath,pkgName):
     lines = []
     with open(srcPath+'/CMakeLists.txt', 'r') as file:
         lines = file.readlines()
 
         for struct in structs:
-            pName = '_'.join(struct.name.split('_')[2:len(struct.name.split('_'))-1])
+            pName = '_'.join(struct.name.split('_')[pkgName.count('_')+1:len(struct.name.split('_'))-1])
             lines.insert(18,'   '+pName+'_msg.msg\n')
 
     with open(srcPath+'/CMakeLists.txt', 'w') as file:
         file.writelines(lines)
 
+
+
 def main():        
     if len(sys.argv) == 6:
-        db_name = sys.argv[1]
+        pkg_name = sys.argv[1]
         dbc_path = sys.argv[2]
         pckg_path = sys.argv[3]
         sbs_topic = sys.argv[4]
@@ -337,12 +339,12 @@ def main():
         os.system("scripts/install.sh")
     
     os.system("chmod +x scripts/generateParser.sh")       
-    os.system("scripts/generateParser.sh " + db_name + " " + dbc_path + " " + pckg_path + " " + sbs_topic)
-    structs = readHeaderFile(pckg_path+'/'+db_name+'/include/'+db_name+'.h',db_name)
-    fillMessage(structs,pckg_path+'/'+db_name+'/msg/',dbc_path)
-    update_CMakeLists(structs,pckg_path+'/'+db_name)
-    writeCpp(structs,pckg_path+'/'+db_name+'/src/'+db_name+'_parser.cpp',db_name,sbs_topic, pub_topic)
-    stringMsg = 'Can parser [' +db_name+ '] was created SUCCESSFULLY!'
+    os.system("scripts/generateParser.sh " + pkg_name + " " + dbc_path + " " + pckg_path + " " + sbs_topic)
+    structs = readHeaderFile(pckg_path+'/'+pkg_name+'/include/'+pkg_name+'.h',pkg_name)
+    fillMessage(structs,pckg_path+'/'+pkg_name+'/msg/',dbc_path,pkg_name)
+    update_CMakeLists(structs,pckg_path+'/'+pkg_name,pkg_name)
+    writeCpp(structs,pckg_path+'/'+pkg_name+'/src/'+pkg_name+'_parser.cpp',pkg_name,sbs_topic, pub_topic)
+    stringMsg = 'Can parser [' +pkg_name+ '] was created SUCCESSFULLY!'
     print(stringMsg)
                                                             
 if __name__ == '__main__':
