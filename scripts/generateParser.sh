@@ -5,6 +5,7 @@ dbc_path=$2
 pckg_path=$3
 sbs_topic=$4
 
+rm $pckg_path/$db_name -r -f
 . env/bin/activate
 cd $pckg_path
 catkin create pkg $db_name --catkin-deps std_msgs roscpp can_msgs message_generation message_runtime
