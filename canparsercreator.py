@@ -320,7 +320,7 @@ def update_CMakeLists(structs,srcPath,pkgName):
 
 
 
-def main():        
+def main():   
     if len(sys.argv) == 7:
         pkg_name = sys.argv[1]
         dbc_path = sys.argv[2]
@@ -335,12 +335,14 @@ def main():
         return -1
     
     files = os.listdir('.')
+    file_directory = os.path.dirname(os.path.abspath(__file__))
+    script_path = os.path.join(file_directory, 'scripts')
     if not 'env' in files:
-        os.system("chmod +x scripts/install.sh")
-        os.system("scripts/install.sh")
+        os.system(f"chmod +x {script_path}/install.sh")
+        os.system(f"{script_path}/install.sh")
     
-    os.system("chmod +x scripts/generateParser.sh")       
-    os.system("scripts/generateParser.sh " + pkg_name + " " + dbc_path + " " + pckg_path + " " + sbs_topic)
+    os.system(f"chmod +x {script_path}/generateParser.sh")       
+    os.system(f"{script_path}/generateParser.sh " + pkg_name + " " + dbc_path + " " + pckg_path + " " + sbs_topic)
     structs = readHeaderFile(pckg_path+'/'+pkg_name+'/include/'+pkg_name+'.h',pkg_name, filter_file_path)
     fillMessage(structs,pckg_path+'/'+pkg_name+'/msg/',dbc_path,pkg_name)
     update_CMakeLists(structs,pckg_path+'/'+pkg_name,pkg_name)
