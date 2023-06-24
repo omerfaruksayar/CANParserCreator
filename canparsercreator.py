@@ -289,7 +289,7 @@ def writeCpp(structs,srcPath,pkgName,sbsTopic, pubTopic, filter_file_path):
         inboundCallBack += '\t\t\t\t\tbreak;\n' 
 
     default_case = '\n\t\t\t\tdefault:\n\
-        \t\t\t\t\tROS_DEBUG_WARN(\"Unkown CAN_FRAME_ID\");\n\
+        \t\t\t\t\tROS_DEBUG(\"Unkown CAN_FRAME_ID\");\n\
         \t\t\t\t\tbreak;\n\t\t\t\t}\n\t}\n};\n'
     
     intMain = '\nint main(int argc, char *argv[])\n{\n\tros::init(argc,argv,"'+pkgName+'_feedback");\n\t'+pkgName.upper()+'Feedback '+pkgName+\
