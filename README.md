@@ -28,7 +28,7 @@ Program takes 6 parameters,<br />
 package name = Name of the package will be created in the given WS path <br />
 dbc path = path for dbc file containing .dbc file <br />
 package path = Path for WS/src <br />
-filter file path = Path of the filter file.
+filter file path = Path of the filter file.<br />
 subscribing topic name = Topic for inbound can data (can_msgs/Frame) <br />
 publisher topic name = Topic for outbound can data (can_msgs/Frame) <br />  
 
