@@ -3,13 +3,12 @@
 db_name=$1
 dbc_path=$2
 pckg_path=$3
-msg_name=$4
-sbs_topic=$5
-pbs_topic=$6
+sbs_topic=$4
 
+rm $pckg_path/$db_name -r -f
 . env/bin/activate
 cd $pckg_path
-catkin_create_pkg $db_name std_msgs roscpp can_msgs message_generation
+catkin create pkg $db_name --catkin-deps std_msgs roscpp can_msgs message_generation message_runtime
 cd $db_name/include
 rm -rf $db_name
 cd ../src
@@ -27,14 +26,9 @@ echo '<launch>
 </launch>' >> $db_name'_parser.launch'
 cd ..
 mkdir msg
-cd msg
-touch $msg_name.msg
-cd ..
-sed -i '62 i \  <exec_depend>message_runtime</exec_depend>' package.xml
 sed -i '17,209d' CMakeLists.txt
 echo 'add_message_files(
    FILES
-   '$msg_name'.msg
 )' >> CMakeLists.txt
 
  echo "generate_messages(
@@ -46,7 +40,7 @@ echo 'add_message_files(
  echo "catkin_package(
   INCLUDE_DIRS include
   LIBRARIES $db_name
-  CATKIN_DEPENDS can_msgs roscpp std_msgs message_runtime
+  CATKIN_DEPENDS can_msgs roscpp std_msgs
 #  DEPENDS system_lib
 )" >> CMakeLists.txt
 
