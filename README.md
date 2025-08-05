@@ -30,7 +30,7 @@ dbc path = path for dbc file containing .dbc file <br />
 package path = Path for WS/src <br />
 filter file path = Path of the filter file.<br />
 subscribing topic name = Topic for inbound can data (can_msgs/Frame) <br />
-publisher topic name = Topic for outbound can data (can_msgs/Frame) <br />  
+publisher topic name = Topic for outbound can data (can_msgs/Frame) <br />
 
 ```
 python3 canparsercreator.py <package name> <dbc path> <package path> <filter file path> <subscribing topic name for can messages> <publishing topic name for can messages>
